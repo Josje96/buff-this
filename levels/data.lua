@@ -380,7 +380,7 @@ levels[22] = {
         "                                        ",
         "                                        ",
         " S                                   G  ",
-        " #   #    #    #   #   #    #   ###     ",         ",
+        " #   #    #    #   #   #    #   ###      ",
         "                                        ",
         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "                                        ",
