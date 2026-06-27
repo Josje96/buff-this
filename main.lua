@@ -1,11 +1,14 @@
 DEV = true   -- set to false to ship
 
-local Menu        = require("states.menu")
-local Game        = require("states.game")
-local Results     = require("states.results")
-local GameOver    = require("states.gameover")
-local Victory     = require("states.victory")
-local LevelSelect = require("states.levelselect")
+local Menu         = require("states.menu")
+local Game         = require("states.game")
+local Results      = require("states.results")
+local GameOver     = require("states.gameover")
+local Victory      = require("states.victory")
+local LevelSelect  = require("states.levelselect")
+local Editor       = require("states.editor")
+local CustomLevels = require("states.customlevels")
+local userlevels   = require("systems.userlevels")
 
 local state  = nil
 local states = {}
@@ -18,6 +21,8 @@ function states.switch(name, ...)
     elseif name == "gameover"    then state = GameOver.new(states, ...)
     elseif name == "victory"     then state = Victory.new(states, ...)
     elseif name == "levelselect" then state = LevelSelect.new(states, ...)
+    elseif name == "editor"      then state = Editor.new(states, ...)
+    elseif name == "customlevels" then state = CustomLevels.new(states, ...)
     end
 end
 
@@ -47,6 +52,22 @@ end
 
 function love.keyreleased(key)
     if state and state.keyreleased then state:keyreleased(key) end
+end
+
+function love.textinput(t)
+    if state and state.textinput then state:textinput(t) end
+end
+
+-- Drag a .txt level file onto the window to import it.
+function love.filedropped(file)
+    local ok = file:open("r")
+    if not ok then return end
+    local text = file:read()
+    file:close()
+    local def = userlevels.importText(text)
+    if def then
+        states.switch("customlevels")
+    end
 end
 
 function love.gamepadpressed(joystick, button)

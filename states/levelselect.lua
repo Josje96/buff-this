@@ -1,5 +1,7 @@
-local data = require("levels.data")
-local run  = require("systems.run")
+local data     = require("levels.data")
+local run      = require("systems.run")
+local input    = require("systems.input")
+local palettes = require("levels.palettes")
 
 local LevelSelect = {}
 LevelSelect.__index = LevelSelect
@@ -101,7 +103,7 @@ function LevelSelect:draw()
 
     love.graphics.setFont(love.graphics.newFont(13))
     love.graphics.setColor(C.dim)
-    local hint = "Arrow keys to navigate   Enter / A to play   Esc to go back"
+    local hint = "navigate Arrows/stick   play Enter/A   edit E/Y   back Esc/B"
     love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 30)
 end
 
@@ -111,6 +113,20 @@ function LevelSelect:_launch()
     r.lives    = math.huge   -- infinite lives in dev mode
     r.dev      = true
     self.states.switch("game", r)
+end
+
+-- Open the highlighted built-in level in the editor (DEV). Editing + F4 there
+-- copies a Lua snippet to paste back into levels/data.lua.
+function LevelSelect:_editBuiltin()
+    local d = data[self.cursor]
+    if not d then return end
+    self.states.switch("editor", {
+        _builtinIdx = self.cursor,
+        name        = d.name,
+        palette     = palettes.nameOf(d.palette),
+        buff        = d.forceBuff,
+        map         = d.map,
+    })
 end
 
 function LevelSelect:_navigate(dx, dy)
@@ -134,6 +150,7 @@ function LevelSelect:keypressed(key)
     elseif key == "up"     then self:_navigate( 0, -1)
     elseif key == "down"   then self:_navigate( 0,  1)
     elseif key == "return" or key == "space" then self:_launch()
+    elseif key == "e"      then self:_editBuiltin()
     elseif key == "escape" then self.states.switch("menu")
     end
 end
@@ -144,7 +161,17 @@ function LevelSelect:gamepadpressed(joystick, button)
     elseif button == "dpup"    then self:_navigate( 0, -1)
     elseif button == "dpdown"  then self:_navigate( 0,  1)
     elseif button == "a"       then self:_launch()
-    elseif button == "start"   then self.states.switch("menu")
+    elseif button == "y"       then self:_editBuiltin()
+    elseif button == "b" or button == "start" then self.states.switch("menu")
+    end
+end
+
+function LevelSelect:gamepadaxis(joystick, axis, value)
+    local nav = input.stickNav(axis, value)
+    if nav == "left"  then self:_navigate(-1,  0)
+    elseif nav == "right" then self:_navigate( 1,  0)
+    elseif nav == "up"    then self:_navigate( 0, -1)
+    elseif nav == "down"  then self:_navigate( 0,  1)
     end
 end
 

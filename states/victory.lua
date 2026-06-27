@@ -90,7 +90,7 @@ end
 function Victory:gamepadpressed(joystick, button)
     if button == "a" then
         self.states.switch("game", require("systems.run").new())
-    elseif button == "start" then
+    elseif button == "b" or button == "start" then
         self.states.switch("menu")
     end
 end

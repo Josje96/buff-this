@@ -16,7 +16,9 @@ function Game.new(states, r)
     self.states = states
     self.run    = r
 
-    self.level  = loader.load(data[r.levelIdx])
+    -- r.customLevel is a playable def (editor playtest or a custom level);
+    -- otherwise load the built-in campaign level.
+    self.level  = loader.load(r.customLevel or data[r.levelIdx])
     self.player = Player.new(self.level.spawn.x, self.level.spawn.y)
     self.camX   = self.level.spawn.x
     self.camY   = self.level.spawn.y
@@ -42,8 +44,19 @@ function Game.new(states, r)
     self.hintDone    = false
     self.hintTimer   = 0
     self.lastDt      = 0
+    self.pendingBuffNav = nil
 
     return self
+end
+
+-- Leave the level: back to the editor / custom browser if we came from there,
+-- otherwise the main menu.
+function Game:_exit()
+    if self.run.onExit then
+        self.states.switch(self.run.onExit, self.run.exitArg)
+    else
+        self.states.switch("menu")
+    end
 end
 
 function Game:update(dt)
@@ -51,7 +64,7 @@ function Game:update(dt)
     input.update()
 
     if input.pressed("pause") then
-        self.states.switch("menu")
+        self:_exit()
         return
     end
 
@@ -59,6 +72,8 @@ function Game:update(dt)
         if self.run.dev and not self.buffLocked then
             -- dev: hold on the splash so you can pick a buff; don't auto-advance
             local dx = input.pressed("right") and 1 or (input.pressed("left") and -1 or 0)
+            if dx == 0 and self.pendingBuffNav then dx = self.pendingBuffNav end
+            self.pendingBuffNav = nil
             if dx ~= 0 then
                 self.buffIdx = ((self.buffIdx - 1 + dx) % #self.allBuffs) + 1
                 self.buff    = self.allBuffs[self.buffIdx]
@@ -74,11 +89,16 @@ function Game:update(dt)
     if self.won then
         self.winTimer = self.winTimer + dt
         if self.winTimer > 1.5 then
-            run.advance(self.run)
-            if run.isComplete(self.run) then
-                self.states.switch("victory", self.run)
+            if self.run.onExit then
+                -- playtest / custom level: don't touch campaign progress
+                self:_exit()
             else
-                self.states.switch("results", self.run, self.buff.name, self.level.name)
+                run.advance(self.run)
+                if run.isComplete(self.run) then
+                    self.states.switch("victory", self.run)
+                else
+                    self.states.switch("results", self.run, self.buff.name, self.level.name)
+                end
             end
         end
         return
@@ -97,7 +117,9 @@ function Game:update(dt)
         if self.deathTimer > 0.8 then
             if not self.run.dev then run.died(self.run) end
             if run.isOver(self.run) then
-                self.states.switch("gameover", self.run)
+                -- out of lives: back to editor/browser if applicable, else game over
+                if self.run.onExit then self:_exit()
+                else self.states.switch("gameover", self.run) end
             else
                 self.states.switch("game", self.run)
             end
@@ -241,7 +263,7 @@ function Game:draw()
 end
 
 function Game:keypressed(key)
-    if key == "escape" then self.states.switch("menu") end
+    if key == "escape" then self:_exit() end
 end
 
 function Game:gamepadpressed(joystick, button)
@@ -254,6 +276,13 @@ end
 
 function Game:gamepadaxis(joystick, axis, value)
     input.gamepadaxis(joystick, axis, value)
+    -- left stick cycles the buff in the dev splash picker
+    if self.splashTimer > 0 and self.run.dev and not self.buffLocked then
+        local nav = input.stickNav(axis, value)
+        if     nav == "left"  then self.pendingBuffNav = -1
+        elseif nav == "right" then self.pendingBuffNav = 1
+        end
+    end
 end
 
 return Game

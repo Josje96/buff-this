@@ -1,4 +1,6 @@
-local run  = require("systems.run")
+local run        = require("systems.run")
+local input      = require("systems.input")
+local userlevels = require("systems.userlevels")
 local Menu = {}
 Menu.__index = Menu
 
@@ -20,7 +22,7 @@ local RESOLUTIONS = {
 }
 
 local function getItems()
-    local t = { "Play", "Resolution" }
+    local t = { "Play", "Custom Levels", "Level Editor", "Import Level", "Resolution" }
     if DEV then t[#t+1] = "Level Select" end
     t[#t+1] = "Quit"
     return t
@@ -39,6 +41,9 @@ end
 
 function Menu:update(dt)
     self.flash = (self.flash + dt * 3) % (2 * math.pi)
+    if self.importMsgTimer and self.importMsgTimer > 0 then
+        self.importMsgTimer = self.importMsgTimer - dt
+    end
 end
 
 function Menu:draw()
@@ -116,12 +121,28 @@ function Menu:draw()
         local hint = "Arrow keys / D-pad   Enter / A to select   F11 fullscreen"
         love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 36)
     end
+
+    if self.importMsgTimer and self.importMsgTimer > 0 and self.importMsg then
+        love.graphics.setFont(love.graphics.newFont(15))
+        love.graphics.setColor(0.95, 0.55, 0.20, math.min(1, self.importMsgTimer))
+        love.graphics.print(self.importMsg, W/2 - love.graphics.getFont():getWidth(self.importMsg)/2, H - 62)
+    end
 end
 
 function Menu:_confirm()
     local item = self.items[self.cursor]
     if item == "Play" then
         self.states.switch("game", run.new())
+    elseif item == "Custom Levels" then
+        self.states.switch("customlevels")
+    elseif item == "Level Editor" then
+        self.states.switch("editor")
+    elseif item == "Import Level" then
+        local def = userlevels.importText(love.system.getClipboardText())
+        self.importMsg = def and ("Imported: " .. (def.name or "level"))
+                              or  "Clipboard had no valid level code"
+        self.importMsgTimer = 2.5
+        if def then self.states.switch("customlevels") end
     elseif item == "Level Select" then
         self.states.switch("levelselect")
     elseif item == "Resolution" then
@@ -168,9 +189,16 @@ end
 function Menu:gamepadpressed(joystick, button)
     if button == "dpup"   then self:_navigate(-1)
     elseif button == "dpdown" then self:_navigate(1)
-    elseif button == "a"      then self:_confirm()
+    elseif button == "a" or button == "start" then self:_confirm()
     elseif button == "b"      then
         if self.resOpen then self.resOpen = false end
+    end
+end
+
+function Menu:gamepadaxis(joystick, axis, value)
+    local nav = input.stickNav(axis, value)
+    if nav == "up"   then self:_navigate(-1)
+    elseif nav == "down" then self:_navigate(1)
     end
 end
 

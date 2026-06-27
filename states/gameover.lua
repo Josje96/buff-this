@@ -1,3 +1,4 @@
+local input = require("systems.input")
 local GameOver = {}
 GameOver.__index = GameOver
 
@@ -88,7 +89,14 @@ function GameOver:gamepadpressed(joystick, button)
     if button == "dpup"       then self:_navigate(-1)
     elseif button == "dpdown" then self:_navigate(1)
     elseif button == "a"      then self:_confirm()
-    elseif button == "start"  then self.states.switch("menu")
+    elseif button == "b" or button == "start" then self.states.switch("menu")
+    end
+end
+
+function GameOver:gamepadaxis(joystick, axis, value)
+    local nav = input.stickNav(axis, value)
+    if nav == "up"   then self:_navigate(-1)
+    elseif nav == "down" then self:_navigate(1)
     end
 end
 

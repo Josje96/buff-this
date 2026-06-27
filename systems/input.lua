@@ -71,6 +71,30 @@ function input.gamepadaxis(joystick, axis, value)
     if axis == "leftx" then axisX = value end
 end
 
+-- Analog-stick-as-dpad edge detection for menu navigation.
+-- Returns "up"/"down"/"left"/"right" on a fresh push of the left stick past
+-- the threshold, else nil. Resets when the stick returns near center, so one
+-- push = one step (works the same on any SDL-recognized controller).
+local navState = { x = 0, y = 0 }
+local NAV_ON   = 0.6
+local NAV_OFF  = 0.35
+function input.stickNav(axis, value)
+    local function edge(key, neg, pos)
+        if value <= -NAV_ON and navState[key] ~= -1 then
+            navState[key] = -1; return neg
+        elseif value >= NAV_ON and navState[key] ~= 1 then
+            navState[key] = 1; return pos
+        elseif math.abs(value) < NAV_OFF then
+            navState[key] = 0
+        end
+        return nil
+    end
+    if     axis == "lefty" then return edge("y", "up",   "down")
+    elseif axis == "leftx" then return edge("x", "left", "right")
+    end
+    return nil
+end
+
 function input.down(action)    return held[action] or false end
 function input.pressed(action) return justDown[action] or false end
 function input.released(action) return justUp[action] or false end
