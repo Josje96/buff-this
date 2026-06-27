@@ -1,0 +1,11 @@
+# LÖVE2D build output
+*.love
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+*~
