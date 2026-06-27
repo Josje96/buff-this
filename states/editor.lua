@@ -17,6 +17,7 @@ local fonts = require("systems.fonts")
 local palettes   = require("levels.palettes")
 local format     = require("levels.format")
 local userlevels = require("systems.userlevels")
+local devlevels  = require("systems.devlevels")
 local buffs      = require("systems.buffs")
 local run        = require("systems.run")
 local input      = require("systems.input")
@@ -182,6 +183,10 @@ function Editor:_def()
         palette = self.paletteName,
         buff    = self.buffName,
         map     = rows,
+        -- carry the built-in link so it survives a playtest round-trip (the
+        -- editor is rebuilt from this def on return); otherwise a built-in
+        -- edit would silently fall back to saving as a custom level.
+        _builtinIdx = self.luaIdx,
     }
 end
 
@@ -197,6 +202,19 @@ function Editor:_playtest()
 end
 
 function Editor:_save()
+    -- DEV: editing a built-in writes straight back to levels/data.lua so level
+    -- design iterates fast. Everything else (and any shipped build) saves a
+    -- copy to the user's custom levels.
+    if DEV and self.luaIdx then
+        local ok, err = devlevels.saveBuiltin(self.luaIdx, self:_def())
+        if ok then
+            self:_message("Saved to data.lua (level " .. self.luaIdx .. ")")
+        else
+            self:_message("Save failed: " .. tostring(err))
+        end
+        return
+    end
+
     local id, err = userlevels.save(self:_def())
     if id then
         self.id = id
@@ -226,7 +244,9 @@ function Editor:_cmdItems()
         { kind = "width",    value = function() return tostring(self.W) end,            adjust = true },
         { kind = "height",   value = function() return tostring(self.H) end,            adjust = true },
         { kind = "rename",   label = "Rename" },
-        { kind = "save",     label = "Save" },
+        { kind = "save",     label = (DEV and self.luaIdx)
+                                     and ("Save to data.lua (lvl " .. self.luaIdx .. ")")
+                                     or  "Save to custom levels" },
         { kind = "copycode", label = "Copy share code" },
     }
     if DEV then items[#items+1] = { kind = "copylua", label = "Copy Lua (data.lua)" } end

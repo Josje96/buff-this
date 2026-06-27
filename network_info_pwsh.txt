@@ -1,0 +1,74 @@
+
+1. IP Addresses and Subnets
+Interface: Ethernet 3 - IP: 192.168.56.1 - Mask: 24
+Interface: Bluetooth Network Connection - IP: 169.254.27.134 - Mask: 16
+Interface: Local Area Connection 4 - IP: 169.254.233.15 - Mask: 16
+Interface: Local Area Connection* 10 - IP: 169.254.18.75 - Mask: 16
+Interface: Local Area Connection 3 - IP: 169.254.162.97 - Mask: 16
+Interface: Local Area Connection* 9 - IP: 169.254.254.154 - Mask: 16
+Interface: Local Area Connection 2 - IP: 169.254.74.51 - Mask: 16
+Interface: Ethernet - IP: 192.168.0.22 - Mask: 24
+Interface: Wi-Fi - IP: 192.168.0.131 - Mask: 24
+Interface: Tailscale - IP: 100.102.41.18 - Mask: 32
+Interface: Loopback Pseudo-Interface 1 - IP: 127.0.0.1 - Mask: 8
+
+2. Default Gateway
+Gateway: 192.168.0.1 192.168.0.1
+
+3. DNS Servers
+DNS: 192.168.0.225
+DNS: 8.8.8.8
+DNS: 192.168.0.225
+
+4. Routing Table
+
+DestinationPrefix  NextHop     RouteMetric InterfaceAlias
+-----------------  -------     ----------- --------------
+255.255.255.255/32 0.0.0.0             256 Local Area Connection* 10
+255.255.255.255/32 0.0.0.0             256 Local Area Connection* 9
+255.255.255.255/32 0.0.0.0             256 Wi-Fi
+255.255.255.255/32 0.0.0.0             256 Bluetooth Network Connection
+255.255.255.255/32 0.0.0.0             256 Ethernet
+255.255.255.255/32 0.0.0.0             256 Local Area Connection 4
+255.255.255.255/32 0.0.0.0             256 Local Area Connection 3
+255.255.255.255/32 0.0.0.0             256 Local Area Connection 2
+255.255.255.255/32 0.0.0.0             256 Ethernet 3
+255.255.255.255/32 0.0.0.0             256 Loopback Pseudo-Interface 1
+224.0.0.0/4        0.0.0.0             256 Local Area Connection* 10
+224.0.0.0/4        0.0.0.0             256 Local Area Connection* 9
+224.0.0.0/4        0.0.0.0             256 Wi-Fi
+224.0.0.0/4        0.0.0.0             256 Bluetooth Network Connection
+224.0.0.0/4        0.0.0.0             256 Ethernet
+224.0.0.0/4        0.0.0.0             256 Local Area Connection 4
+224.0.0.0/4        0.0.0.0             256 Local Area Connection 3
+224.0.0.0/4        0.0.0.0             256 Local Area Connection 2
+224.0.0.0/4        0.0.0.0             256 Ethernet 3
+224.0.0.0/4        0.0.0.0             256 Loopback Pseudo-Interface 1
+192.168.56.255/32  0.0.0.0             256 Ethernet 3
+192.168.56.1/32    0.0.0.0             256 Ethernet 3
+192.168.56.0/24    0.0.0.0             256 Ethernet 3
+192.168.0.255/32   0.0.0.0             256 Ethernet
+192.168.0.255/32   0.0.0.0             256 Wi-Fi
+192.168.0.131/32   0.0.0.0             256 Wi-Fi
+192.168.0.22/32    0.0.0.0             256 Ethernet
+192.168.0.0/24     0.0.0.0             256 Ethernet
+192.168.0.0/24     0.0.0.0             256 Wi-Fi
+127.255.255.255/32 0.0.0.0             256 Loopback Pseudo-Interface 1
+127.0.0.1/32       0.0.0.0             256 Loopback Pseudo-Interface 1
+127.0.0.0/8        0.0.0.0             256 Loopback Pseudo-Interface 1
+100.121.231.22/32  0.0.0.0               0 Tailscale
+100.103.83.28/32   0.0.0.0               0 Tailscale
+100.102.41.18/32   0.0.0.0             256 Tailscale
+100.100.100.100/32 0.0.0.0               0 Tailscale
+100.98.161.9/32    0.0.0.0               0 Tailscale
+100.89.145.16/32   0.0.0.0               0 Tailscale
+100.87.197.105/32  0.0.0.0               0 Tailscale
+100.84.29.98/32    0.0.0.0               0 Tailscale
+100.70.248.20/32   0.0.0.0               0 Tailscale
+0.0.0.0/0          192.168.0.1           0 Ethernet
+0.0.0.0/0          192.168.0.1           0 Wi-Fi
+
+
+
+[5. Hostname]
+Host: JOEDESKTOP
