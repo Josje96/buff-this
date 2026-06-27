@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 local run        = require("systems.run")
 local input      = require("systems.input")
 local userlevels = require("systems.userlevels")
@@ -54,20 +55,20 @@ function Menu:draw()
     love.graphics.clear(C.bg[1], C.bg[2], C.bg[3])
 
     -- title
-    local titleFont = love.graphics.newFont(64)
+    local titleFont = fonts.get(64)
     love.graphics.setFont(titleFont)
     love.graphics.setColor(C.title)
     local title = "BUFF THIS"
     love.graphics.print(title, W/2 - titleFont:getWidth(title)/2, H * 0.15)
 
     -- subtitle
-    local subFont18 = love.graphics.newFont(18)
+    local subFont18 = fonts.get(18)
     love.graphics.setFont(subFont18)
     love.graphics.setColor(C.dim)
     local sub = "a platformer with modifiers"
     love.graphics.print(sub, W/2 - subFont18:getWidth(sub)/2, H * 0.15 + 72)
 
-    local menuFont = love.graphics.newFont(32)
+    local menuFont = fonts.get(32)
     love.graphics.setFont(menuFont)
     local startY  = H * 0.42
     local spacing = 56
@@ -78,7 +79,7 @@ function Menu:draw()
         local header = "Resolution"
         love.graphics.print(header, W/2 - menuFont:getWidth(header)/2, startY)
 
-        local subFont = love.graphics.newFont(28)
+        local subFont = fonts.get(28)
         love.graphics.setFont(subFont)
         local listY = startY + spacing + 8
         for i, res in ipairs(RESOLUTIONS) do
@@ -94,7 +95,7 @@ function Menu:draw()
         end
 
         -- hint
-        love.graphics.setFont(love.graphics.newFont(14))
+        love.graphics.setFont(fonts.get(14))
         love.graphics.setColor(C.dim)
         local hint = "Up/Down to pick   Enter / A to apply   Esc / B to cancel"
         love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 36)
@@ -116,14 +117,14 @@ function Menu:draw()
         end
 
         -- hint
-        love.graphics.setFont(love.graphics.newFont(14))
+        love.graphics.setFont(fonts.get(14))
         love.graphics.setColor(C.dim)
         local hint = "Arrow keys / D-pad   Enter / A to select   F11 fullscreen"
         love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 36)
     end
 
     if self.importMsgTimer and self.importMsgTimer > 0 and self.importMsg then
-        love.graphics.setFont(love.graphics.newFont(15))
+        love.graphics.setFont(fonts.get(15))
         love.graphics.setColor(0.95, 0.55, 0.20, math.min(1, self.importMsgTimer))
         love.graphics.print(self.importMsg, W/2 - love.graphics.getFont():getWidth(self.importMsg)/2, H - 62)
     end

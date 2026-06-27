@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 local input = require("systems.input")
 local Results = {}
 Results.__index = Results
@@ -31,14 +32,14 @@ function Results:draw()
 
     love.graphics.clear(C.bg[1], C.bg[2], C.bg[3])
 
-    local bigFont = love.graphics.newFont(64)
+    local bigFont = fonts.get(64)
     love.graphics.setFont(bigFont)
     love.graphics.setColor(C.title)
     local header = "LEVEL CLEAR"
     love.graphics.print(header, W/2 - bigFont:getWidth(header)/2, H * 0.13)
 
     -- level name and progress
-    local infoFont = love.graphics.newFont(20)
+    local infoFont = fonts.get(20)
     love.graphics.setFont(infoFont)
     love.graphics.setColor(C.dim)
     local prev = self.run.levelIdx - 1
@@ -57,7 +58,7 @@ function Results:draw()
 
     -- buff
     if self.buffName ~= "No Modifier" then
-        local bFont = love.graphics.newFont(17)
+        local bFont = fonts.get(17)
         love.graphics.setFont(bFont)
         love.graphics.setColor(C.select[1], C.select[2], C.select[3], 0.85)
         local btxt = "Modifier: " .. self.buffName
@@ -65,7 +66,7 @@ function Results:draw()
     end
 
     -- lives remaining
-    local livesFont = love.graphics.newFont(16)
+    local livesFont = fonts.get(16)
     love.graphics.setFont(livesFont)
     love.graphics.setColor(C.dim)
     local ly = H * 0.40
@@ -84,7 +85,7 @@ function Results:draw()
     end
 
     -- options
-    local menuFont = love.graphics.newFont(32)
+    local menuFont = fonts.get(32)
     love.graphics.setFont(menuFont)
     local opts   = { "Next Level", "Main Menu" }
     local startY = H * 0.52
@@ -101,7 +102,7 @@ function Results:draw()
         love.graphics.print(text, W/2 - menuFont:getWidth(text)/2, startY + (i-1) * spacing)
     end
 
-    love.graphics.setFont(love.graphics.newFont(14))
+    love.graphics.setFont(fonts.get(14))
     love.graphics.setColor(C.dim)
     local hint = "Arrow keys / D-pad   Enter / A to select"
     love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 36)

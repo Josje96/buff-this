@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 local input  = require("systems.input")
 local Player = require("entities.player")
 local loader = require("levels.loader")
@@ -44,6 +45,8 @@ function Game.new(states, r)
     self.hintDone    = false
     self.hintTimer   = 0
     self.lastDt      = 0
+    self.accum       = 0
+    self.jumpQueued  = false
     self.pendingBuffNav = nil
 
     return self
@@ -104,13 +107,33 @@ function Game:update(dt)
         return
     end
 
-    self.player:update(dt, self.level)
+    -- Fixed-timestep physics: advance in constant slices so movement is
+    -- identical regardless of framerate, and a dropped frame just runs a few
+    -- catch-up slices instead of one large, unstable step (which could tunnel
+    -- the player through thin platforms). dt is clamped to avoid a spiral of
+    -- death after a big stall (alt-tab, window drag).
+    local STEP    = 1 / 120
+    local MAX_SUB = 8
+    self.accum = self.accum + math.min(dt, MAX_SUB * STEP)
+    -- Queue the jump edge so a press on a frame that runs no substep (common on
+    -- high-refresh monitors where dt < STEP) isn't lost; the next substep
+    -- consumes it. Without this, jumps fire only intermittently.
+    if input.pressed("jump") then self.jumpQueued = true end
+    while self.accum >= STEP do
+        local jumpPressed = self.jumpQueued
+        self.jumpQueued = false   -- consumed by this substep
+        self.player:update(STEP, self.level, jumpPressed)
+        self.accum = self.accum - STEP
+        if not self.player.dead then
+            local hx, hy, hw, hh = self.player:getRect()
+            if #self.level.getHazardsInRect(hx, hy, hw, hh) > 0 then
+                self.player.dead = true
+            end
+        end
+        if self.player.dead then break end
+    end
 
     local px, py, pw, ph = self.player:getRect()
-
-    if #self.level.getHazardsInRect(px, py, pw, ph) > 0 then
-        self.player.dead = true
-    end
 
     if self.player.dead then
         self.deathTimer = self.deathTimer + dt
@@ -163,7 +186,7 @@ function Game:draw()
     end
 
     -- HUD: level progress + lives
-    local hudFont = love.graphics.newFont(14)
+    local hudFont = fonts.get(14)
     love.graphics.setFont(hudFont)
     love.graphics.setColor(1, 1, 1, 0.6)
     love.graphics.print(string.format("Level %d / %d", self.run.levelIdx, self.run.maxLevels), 12, 12)
@@ -184,7 +207,7 @@ function Game:draw()
 
     -- buff tag
     if self.buff.name ~= "No Modifier" then
-        local bFont = love.graphics.newFont(13)
+        local bFont = fonts.get(13)
         love.graphics.setFont(bFont)
         local bc = self.buff.color
         love.graphics.setColor(bc[1], bc[2], bc[3], 0.85)
@@ -199,26 +222,26 @@ function Game:draw()
         love.graphics.rectangle("fill", 0, 0, W, H)
 
         local bc = self.buff.color
-        local titleFont = love.graphics.newFont(52)
+        local titleFont = fonts.get(52)
         love.graphics.setFont(titleFont)
         love.graphics.setColor(bc[1], bc[2], bc[3], fade)
         local bname = self.buff.name
         love.graphics.print(bname, W/2 - titleFont:getWidth(bname)/2, H * 0.32)
 
-        local descFont = love.graphics.newFont(22)
+        local descFont = fonts.get(22)
         love.graphics.setFont(descFont)
         love.graphics.setColor(0.9, 0.9, 0.9, fade * 0.9)
         local desc = self.buff.description
         love.graphics.print(desc, W/2 - descFont:getWidth(desc)/2, H * 0.32 + 68)
 
         -- level info during splash
-        love.graphics.setFont(love.graphics.newFont(16))
+        love.graphics.setFont(fonts.get(16))
         love.graphics.setColor(0.6, 0.6, 0.6, fade * 0.8)
         local linfo = string.format("Level %d — %s", self.run.levelIdx, self.level.name)
         love.graphics.print(linfo, W/2 - love.graphics.getFont():getWidth(linfo)/2, H * 0.32 + 108)
 
         if self.run.dev then
-            love.graphics.setFont(love.graphics.newFont(13))
+            love.graphics.setFont(fonts.get(13))
             if self.buffLocked then
                 love.graphics.setColor(1.0, 0.8, 0.4, fade * 0.85)
                 local locked = "this level requires this modifier"
@@ -229,7 +252,7 @@ function Game:draw()
                 love.graphics.print(picker, W/2 - love.graphics.getFont():getWidth(picker)/2, H * 0.72 - 22)
             end
         end
-        love.graphics.setFont(love.graphics.newFont(13))
+        love.graphics.setFont(fonts.get(13))
         love.graphics.setColor(0.4, 0.4, 0.4, fade * 0.6)
         local skip = "press jump to confirm"
         love.graphics.print(skip, W/2 - love.graphics.getFont():getWidth(skip)/2, H * 0.72)
@@ -240,7 +263,7 @@ function Game:draw()
         love.graphics.setColor(1, 1, 0.3, 0.35 + 0.2 * math.sin(self.winTimer * 8))
         love.graphics.rectangle("fill", 0, 0, W, H)
         love.graphics.setColor(1, 1, 1)
-        local wFont = love.graphics.newFont(48)
+        local wFont = fonts.get(48)
         love.graphics.setFont(wFont)
         local msg = "YOU WIN!"
         love.graphics.print(msg, W/2 - wFont:getWidth(msg)/2, H/2 - 30)
@@ -255,7 +278,7 @@ function Game:draw()
     -- controls hint
     if not self.hintDone then
         local a = math.max(0, 1 - self.hintTimer / 3)
-        love.graphics.setFont(love.graphics.newFont(13))
+        love.graphics.setFont(fonts.get(13))
         love.graphics.setColor(1, 1, 1, a)
         local hint = "Arrows/WASD move   Z/Space/Up jump   Esc menu"
         love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 32)

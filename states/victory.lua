@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 local Victory = {}
 Victory.__index = Victory
 
@@ -50,20 +51,20 @@ function Victory:draw()
     end
 
     -- title
-    local bigFont = love.graphics.newFont(72)
+    local bigFont = fonts.get(72)
     love.graphics.setFont(bigFont)
     love.graphics.setColor(C.title[1], C.title[2], C.title[3], alpha)
     local header = "YOU DID IT!"
     love.graphics.print(header, W/2 - bigFont:getWidth(header)/2, H * 0.15)
 
-    local subFont = love.graphics.newFont(28)
+    local subFont = fonts.get(28)
     love.graphics.setFont(subFont)
     love.graphics.setColor(C.sub)
     local sub = "All 45 levels complete."
     love.graphics.print(sub, W/2 - subFont:getWidth(sub)/2, H * 0.15 + 84)
 
     -- play again
-    local menuFont = love.graphics.newFont(32)
+    local menuFont = fonts.get(32)
     love.graphics.setFont(menuFont)
     love.graphics.setColor(C.title[1], C.title[2], C.title[3], alpha)
     local msg = "> Play Again"
@@ -73,7 +74,7 @@ function Victory:draw()
     local msg2 = "  Main Menu"
     love.graphics.print(msg2, W/2 - menuFont:getWidth(msg2)/2, H * 0.62 + 56)
 
-    love.graphics.setFont(love.graphics.newFont(14))
+    love.graphics.setFont(fonts.get(14))
     love.graphics.setColor(C.dim)
     local hint = "Enter / A — play again     Esc — main menu"
     love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 36)

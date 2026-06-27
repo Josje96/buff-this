@@ -46,7 +46,10 @@ function Player.new(x, y)
     return self
 end
 
-function Player:update(dt, level)
+-- jumpPressed: whether the jump button's rising edge happened this frame. The
+-- caller passes it true on only the first physics substep so a single press
+-- can't be consumed by multiple fixed-timestep substeps.
+function Player:update(dt, level, jumpPressed)
     if self.dead then return end
 
     local mod = self.mod
@@ -70,7 +73,7 @@ function Player:update(dt, level)
     -- jump buffering
     if self.jumpBuffer > 0 then self.jumpBuffer = self.jumpBuffer - dt end
 
-    if input.pressed("jump") then
+    if jumpPressed then
         self.jumpBuffer = JUMP_BUFFER
     end
 

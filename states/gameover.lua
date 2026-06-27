@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 local input = require("systems.input")
 local GameOver = {}
 GameOver.__index = GameOver
@@ -29,20 +30,20 @@ function GameOver:draw()
 
     love.graphics.clear(C.bg[1], C.bg[2], C.bg[3])
 
-    local bigFont = love.graphics.newFont(72)
+    local bigFont = fonts.get(72)
     love.graphics.setFont(bigFont)
     love.graphics.setColor(C.title[1], C.title[2], C.title[3], alpha)
     local header = "GAME OVER"
     love.graphics.print(header, W/2 - bigFont:getWidth(header)/2, H * 0.18)
 
-    local subFont = love.graphics.newFont(20)
+    local subFont = fonts.get(20)
     love.graphics.setFont(subFont)
     love.graphics.setColor(C.dim)
     local reached = string.format("You reached level %d of %d", self.run.levelIdx, self.run.maxLevels)
     love.graphics.print(reached, W/2 - subFont:getWidth(reached)/2, H * 0.18 + 84)
 
     -- options
-    local menuFont = love.graphics.newFont(32)
+    local menuFont = fonts.get(32)
     love.graphics.setFont(menuFont)
     local opts    = { "Try Again", "Main Menu" }
     local startY  = H * 0.55
@@ -59,7 +60,7 @@ function GameOver:draw()
         love.graphics.print(text, W/2 - menuFont:getWidth(text)/2, startY + (i-1) * spacing)
     end
 
-    love.graphics.setFont(love.graphics.newFont(14))
+    love.graphics.setFont(fonts.get(14))
     love.graphics.setColor(C.dim)
     local hint = "Arrow keys / D-pad   Enter / A to select"
     love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 36)

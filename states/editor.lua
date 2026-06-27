@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 -- In-game level editor.
 --
 -- Construct with an optional editable def to edit it, or nil for a blank level:
@@ -142,8 +143,9 @@ function Editor:_moveCursor(dx, dy)
 end
 
 function Editor:_resize(dw, dh)
-    local newW = math.max(4, math.min(120, self.W + dw))
-    local newH = math.max(4, math.min(40,  self.H + dh))
+    -- no upper cap on level size; just a sane floor so the grid stays valid
+    local newW = math.max(4, self.W + dw)
+    local newH = math.max(4, self.H + dh)
     local g = blankGrid(newW, newH)
     for r = 1, math.min(self.H, newH) do
         for c = 1, math.min(self.W, newW) do g[r][c] = self.grid[r][c] end
@@ -367,11 +369,11 @@ function Editor:draw()
     love.graphics.rectangle("fill", 0, 0, Wd, 64)
     love.graphics.rectangle("fill", 0, Hd - 52, Wd, 52)
 
-    love.graphics.setFont(love.graphics.newFont(16))
+    love.graphics.setFont(fonts.get(16))
     love.graphics.setColor(1, 0.85, 0.2)
     love.graphics.print("EDITOR — " .. self.name, 14, 10)
 
-    love.graphics.setFont(love.graphics.newFont(13))
+    love.graphics.setFont(fonts.get(13))
     love.graphics.setColor(0.85, 0.85, 0.9)
     local meta = string.format("Brush: %s    Palette: %s    Buff: %s    Size: %dx%d    (%d,%d)",
         BRUSHES[self.brushIdx].label, self.paletteName, self.buffName or "random",
@@ -386,7 +388,7 @@ function Editor:draw()
 
     -- transient message
     if self.msgTimer > 0 and self.msg then
-        love.graphics.setFont(love.graphics.newFont(16))
+        love.graphics.setFont(fonts.get(16))
         love.graphics.setColor(0.2, 0.95, 0.6, math.min(1, self.msgTimer))
         love.graphics.print(self.msg, Wd/2 - love.graphics.getFont():getWidth(self.msg)/2, 70)
     end
@@ -399,10 +401,10 @@ function Editor:_drawCommand(Wd, Hd)
     love.graphics.setColor(0, 0, 0, 0.75)
     love.graphics.rectangle("fill", 0, 0, Wd, Hd)
     local items = self:_cmdItems()
-    love.graphics.setFont(love.graphics.newFont(22))
+    love.graphics.setFont(fonts.get(22))
     love.graphics.setColor(1, 0.85, 0.2)
     love.graphics.print("Editor Menu", Wd/2 - 110, Hd * 0.18)
-    love.graphics.setFont(love.graphics.newFont(20))
+    love.graphics.setFont(fonts.get(20))
     local y = Hd * 0.18 + 50
     for i, item in ipairs(items) do
         local isSel = (i == self.cmdCursor)
@@ -410,7 +412,7 @@ function Editor:_drawCommand(Wd, Hd)
         local prefix = isSel and "> " or "  "
         love.graphics.print(prefix .. self:_cmdLabel(item), Wd/2 - 150, y + (i-1) * 32)
     end
-    love.graphics.setFont(love.graphics.newFont(13))
+    love.graphics.setFont(fonts.get(13))
     love.graphics.setColor(0.6, 0.6, 0.7)
     local hint = "Up/Down move   Left/Right adjust   A/Enter select   B/Esc close"
     love.graphics.print(hint, Wd/2 - love.graphics.getFont():getWidth(hint)/2, Hd - 40)
@@ -419,11 +421,11 @@ end
 function Editor:_drawKeyboard(Wd, Hd)
     love.graphics.setColor(0, 0, 0, 0.82)
     love.graphics.rectangle("fill", 0, 0, Wd, Hd)
-    love.graphics.setFont(love.graphics.newFont(28))
+    love.graphics.setFont(fonts.get(28))
     love.graphics.setColor(1, 1, 1)
     love.graphics.print("Name: " .. self.name .. "_", Wd/2 - 250, Hd * 0.22)
 
-    love.graphics.setFont(love.graphics.newFont(22))
+    love.graphics.setFont(fonts.get(22))
     local startX, startY, gap = Wd/2 - 250, Hd * 0.36, 36
     for ry = 1, #KB_ROWS do
         local row = KB_ROWS[ry]
@@ -443,7 +445,7 @@ function Editor:_drawKeyboard(Wd, Hd)
         sx = sx + love.graphics.getFont():getWidth("[" .. label .. "]  ")
     end
 
-    love.graphics.setFont(love.graphics.newFont(13))
+    love.graphics.setFont(fonts.get(13))
     love.graphics.setColor(0.6, 0.6, 0.7)
     local hint = "Move dpad/stick   A add   Y backspace   Start done   (keyboard: just type, Enter done)"
     love.graphics.print(hint, Wd/2 - love.graphics.getFont():getWidth(hint)/2, Hd - 40)

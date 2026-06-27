@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 local loader = {}
 
 local TILE_SIZE = 40
@@ -125,7 +126,7 @@ function loader.draw(level, camX, camY)
         love.graphics.setColor(p.goal)
         love.graphics.rectangle("fill", gx + 4, gy, ts - 8, ts, 4, 4)
         love.graphics.setColor(1, 1, 1, 0.6)
-        love.graphics.setFont(love.graphics.newFont(20))
+        love.graphics.setFont(fonts.get(20))
         love.graphics.print("!", gx + ts/2 - 5, gy + 8)
     end
 end

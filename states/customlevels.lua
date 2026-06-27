@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 -- Browser for player-made / imported levels stored in the save directory.
 -- Play, edit, delete, or import a level (paste a share code from the clipboard).
 
@@ -48,20 +49,20 @@ function CustomLevels:draw()
     local alpha = 0.6 + 0.4 * math.abs(math.sin(self.flash))
     love.graphics.clear(C.bg[1], C.bg[2], C.bg[3])
 
-    love.graphics.setFont(love.graphics.newFont(32))
+    love.graphics.setFont(fonts.get(32))
     love.graphics.setColor(C.title)
     local header = "Custom Levels"
     love.graphics.print(header, W/2 - love.graphics.getFont():getWidth(header)/2, 28)
 
     if #self.items == 0 then
-        love.graphics.setFont(love.graphics.newFont(18))
+        love.graphics.setFont(fonts.get(18))
         love.graphics.setColor(C.dim)
         local none = "No custom levels yet."
         love.graphics.print(none, W/2 - love.graphics.getFont():getWidth(none)/2, H * 0.4)
         local hint = "Press C to create one, or I to import a share code from your clipboard."
         love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H * 0.4 + 30)
     else
-        love.graphics.setFont(love.graphics.newFont(20))
+        love.graphics.setFont(fonts.get(20))
         local startY = 110
         local rowH   = 34
         local maxRows = math.floor((H - startY - 90) / rowH)
@@ -83,7 +84,7 @@ function CustomLevels:draw()
     end
 
     -- footer
-    love.graphics.setFont(love.graphics.newFont(14))
+    love.graphics.setFont(fonts.get(14))
     love.graphics.setColor(C.dim)
     local hint
     if self.confirmDelete then

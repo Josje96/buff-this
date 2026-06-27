@@ -1,3 +1,4 @@
+local fonts = require("systems.fonts")
 local data     = require("levels.data")
 local run      = require("systems.run")
 local input    = require("systems.input")
@@ -40,14 +41,14 @@ function LevelSelect:draw()
 
     -- header
     love.graphics.setColor(C.title)
-    local hFont = love.graphics.newFont(32)
+    local hFont = fonts.get(32)
     love.graphics.setFont(hFont)
     local header = "[DEV] Level Select"
     love.graphics.print(header, W/2 - hFont:getWidth(header)/2, 28)
 
     -- grid
-    local cellFont = love.graphics.newFont(14)
-    local nameFont = love.graphics.newFont(11)
+    local cellFont = fonts.get(14)
+    local nameFont = fonts.get(11)
     local totalW   = COLS * CELL_W
     local startX   = W/2 - totalW/2
 
@@ -96,12 +97,12 @@ function LevelSelect:draw()
     -- selected level info
     local sel = data[self.cursor]
     love.graphics.setColor(C.title)
-    local infoFont = love.graphics.newFont(16)
+    local infoFont = fonts.get(16)
     love.graphics.setFont(infoFont)
     local info = string.format("Level %d — %s", self.cursor, sel.name)
     love.graphics.print(info, W/2 - infoFont:getWidth(info)/2, H - 56)
 
-    love.graphics.setFont(love.graphics.newFont(13))
+    love.graphics.setFont(fonts.get(13))
     love.graphics.setColor(C.dim)
     local hint = "navigate Arrows/stick   play Enter/A   edit E/Y   back Esc/B"
     love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 30)
