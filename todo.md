@@ -1,3 +1,3 @@
-1. menu overlay is terrible. it just draws over the existing ui? ![alt text](image.png)
+1. leap of faith is basically impossible without speed demon or infinant jump
 
-2. 
+2.
