@@ -6,9 +6,10 @@ local MAX_LEVELS = 45
 
 function run.new()
     return {
-        levelIdx = 1,
-        lives    = MAX_LIVES,
+        levelIdx  = 1,
+        lives     = MAX_LIVES,
         maxLevels = MAX_LEVELS,
+        dev       = DEV or false,
     }
 end
 

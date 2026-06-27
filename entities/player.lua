@@ -38,6 +38,7 @@ function Player.new(x, y)
         gravMult   = 1,
         maxJumps   = BASE.maxJumps,
         invertX    = false,
+        slippery   = false,
     }
 
     self.dead       = false

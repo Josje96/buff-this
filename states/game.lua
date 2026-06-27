@@ -21,7 +21,10 @@ function Game.new(states, r)
     self.camX   = self.level.spawn.x
     self.camY   = self.level.spawn.y
 
-    self.buff        = buffs.random()
+    local allBuffs   = buffs.getAll()
+    self.allBuffs    = allBuffs
+    self.buffIdx     = math.random(#allBuffs)
+    self.buff        = allBuffs[self.buffIdx]
     buffs.apply(self.buff, self.player)
 
     self.splashTimer = SPLASH_TIME
@@ -30,11 +33,13 @@ function Game.new(states, r)
     self.deathTimer  = 0
     self.hintDone    = false
     self.hintTimer   = 0
+    self.lastDt      = 0
 
     return self
 end
 
 function Game:update(dt)
+    self.lastDt = dt
     input.update()
 
     if input.pressed("pause") then
@@ -43,7 +48,17 @@ function Game:update(dt)
     end
 
     if self.splashTimer > 0 then
-        self.splashTimer = self.splashTimer - dt
+        if self.run.dev then
+            -- dev: hold on the splash so you can pick a buff; don't auto-advance
+            local dx = input.pressed("right") and 1 or (input.pressed("left") and -1 or 0)
+            if dx ~= 0 then
+                self.buffIdx = ((self.buffIdx - 1 + dx) % #self.allBuffs) + 1
+                self.buff    = self.allBuffs[self.buffIdx]
+                buffs.apply(self.buff, self.player)
+            end
+        else
+            self.splashTimer = self.splashTimer - dt
+        end
         if input.pressed("jump") then self.splashTimer = 0 end
         return
     end
@@ -87,12 +102,20 @@ function Game:update(dt)
         self.won = true
     end
 
+    -- hint timer
+    if not self.hintDone and self.splashTimer <= 0 then
+        self.hintTimer = self.hintTimer + dt
+        if self.hintTimer >= 3 then self.hintDone = true end
+    end
+
     -- camera
     local W, H  = love.graphics.getDimensions()
     local targetX = self.player.x - W / 2 + self.player.w / 2
     local targetY = self.player.y - H / 2 + self.player.h / 2
     targetX = math.max(0, math.min(targetX, self.level.width  - W))
-    targetY = math.max(0, math.min(targetY, self.level.height - H))
+    local minCamY = math.min(0, self.level.height - H)
+    local maxCamY = math.max(0, self.level.height - H)
+    targetY = math.max(minCamY, math.min(targetY, maxCamY))
     self.camX = self.camX + (targetX - self.camX) * CAM_LERP * dt
     self.camY = self.camY + (targetY - self.camY) * CAM_LERP * dt
 end
@@ -106,7 +129,7 @@ function Game:draw()
     self.player:draw(self.camX, self.camY)
 
     if self.buff.drawFX and self.splashTimer <= 0 then
-        self.buff.drawFX(love.timer.getDelta())
+        self.buff.drawFX(self.lastDt)
     end
 
     -- HUD: level progress + lives
@@ -116,12 +139,17 @@ function Game:draw()
     love.graphics.print(string.format("Level %d / %d", self.run.levelIdx, self.run.maxLevels), 12, 12)
     love.graphics.print(self.level.name, 12, 30)
 
-    -- lives as hearts
-    local heartX = W - 16
-    for i = 1, self.run.lives do
-        love.graphics.setColor(0.95, 0.20, 0.30, 0.9)
-        love.graphics.rectangle("fill", heartX - 14, 10, 12, 12, 2, 2)
-        heartX = heartX - 18
+    -- lives as hearts (∞ in dev mode)
+    if self.run.lives == math.huge then
+        love.graphics.setColor(1, 1, 1, 0.6)
+        love.graphics.print("Lives: \226\136\158", W - 80, 12)
+    else
+        local heartX = W - 16
+        for i = 1, self.run.lives do
+            love.graphics.setColor(0.95, 0.20, 0.30, 0.9)
+            love.graphics.rectangle("fill", heartX - 14, 10, 12, 12, 2, 2)
+            heartX = heartX - 18
+        end
     end
 
     -- buff tag
@@ -159,9 +187,15 @@ function Game:draw()
         local linfo = string.format("Level %d — %s", self.run.levelIdx, self.level.name)
         love.graphics.print(linfo, W/2 - love.graphics.getFont():getWidth(linfo)/2, H * 0.32 + 108)
 
+        if self.run.dev then
+            love.graphics.setFont(love.graphics.newFont(13))
+            love.graphics.setColor(0.6, 0.8, 1.0, fade * 0.85)
+            local picker = string.format("< Left / Right to pick buff   %d / %d >", self.buffIdx, #self.allBuffs)
+            love.graphics.print(picker, W/2 - love.graphics.getFont():getWidth(picker)/2, H * 0.72 - 22)
+        end
         love.graphics.setFont(love.graphics.newFont(13))
         love.graphics.setColor(0.4, 0.4, 0.4, fade * 0.6)
-        local skip = "press jump to skip"
+        local skip = "press jump to confirm"
         love.graphics.print(skip, W/2 - love.graphics.getFont():getWidth(skip)/2, H * 0.72)
     end
 
@@ -183,17 +217,12 @@ function Game:draw()
     end
 
     -- controls hint
-    if not self.hintDone and self.splashTimer <= 0 then
-        self.hintTimer = self.hintTimer + love.timer.getDelta()
-        if self.hintTimer < 3 then
-            local a = math.max(0, 1 - self.hintTimer / 3)
-            love.graphics.setFont(love.graphics.newFont(13))
-            love.graphics.setColor(1, 1, 1, a)
-            local hint = "Arrows/WASD move   Z/Space/Up jump   Esc menu"
-            love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 32)
-        else
-            self.hintDone = true
-        end
+    if not self.hintDone then
+        local a = math.max(0, 1 - self.hintTimer / 3)
+        love.graphics.setFont(love.graphics.newFont(13))
+        love.graphics.setColor(1, 1, 1, a)
+        local hint = "Arrows/WASD move   Z/Space/Up jump   Esc menu"
+        love.graphics.print(hint, W/2 - love.graphics.getFont():getWidth(hint)/2, H - 32)
     end
 end
 

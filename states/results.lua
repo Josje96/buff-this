@@ -67,14 +67,19 @@ function Results:draw()
     local livesFont = love.graphics.newFont(16)
     love.graphics.setFont(livesFont)
     love.graphics.setColor(C.dim)
-    local livesLabel = "Lives remaining: "
-    local lx = W/2 - (livesFont:getWidth(livesLabel) + 18 * self.run.lives) / 2
     local ly = H * 0.40
-    love.graphics.print(livesLabel, lx, ly)
-    lx = lx + livesFont:getWidth(livesLabel) + 4
-    for i = 1, self.run.lives do
-        love.graphics.setColor(0.95, 0.20, 0.30, 0.9)
-        love.graphics.rectangle("fill", lx + (i-1)*18, ly + 1, 12, 12, 2, 2)
+    if self.run.lives == math.huge then
+        local inf = "Lives remaining: ∞"
+        love.graphics.print(inf, W/2 - livesFont:getWidth(inf)/2, ly)
+    else
+        local livesLabel = "Lives remaining: "
+        local lx = W/2 - (livesFont:getWidth(livesLabel) + 18 * self.run.lives) / 2
+        love.graphics.print(livesLabel, lx, ly)
+        lx = lx + livesFont:getWidth(livesLabel) + 4
+        for i = 1, self.run.lives do
+            love.graphics.setColor(0.95, 0.20, 0.30, 0.9)
+            love.graphics.rectangle("fill", lx + (i-1)*18, ly + 1, 12, 12, 2, 2)
+        end
     end
 
     -- options
