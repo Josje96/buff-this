@@ -231,7 +231,7 @@ levels[13] = {
         "                                              ",
         "                                            G ",
         " S    ###        ###        ###        ###    ",
-        "######   XXXXXXX    XXXXXXX    XXXXXXX   #### ",
+        "######   XX##XX#    XXX#XX#    #XX#XX#   #### ",
         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ",
         "##############################################",
         "##############################################",
