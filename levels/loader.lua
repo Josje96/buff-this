@@ -40,8 +40,9 @@ function loader.load(levelDef)
     level.tiles   = tiles
     level.spawn   = spawn
     level.goal    = goal
-    level.name    = levelDef.name
-    level.palette = levelDef.palette
+    level.name      = levelDef.name
+    level.palette   = levelDef.palette
+    level.forceBuff = levelDef.forceBuff
     level.width   = cols * TILE_SIZE
     level.height  = rows * TILE_SIZE
     level.tileSize = TILE_SIZE

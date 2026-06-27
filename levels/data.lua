@@ -260,6 +260,7 @@ levels[14] = {
 
 levels[15] = {
     name = "Sandwich", palette = P.void,
+    forceBuff = "Speed Demon",
     map = {
         "                                        ",
         "########################################",
@@ -292,10 +293,11 @@ levels[16] = {
 
 levels[17] = {
     name = "Lava Lake", palette = P.lava,
+    forceBuff = "Floaty",
     map = {
         "                                        ",
         "                                        ",
-        " S   ####      ####      ####      G    ",
+        " S   ####       ####       ####    G    ",
         " #   XXXX      XXXX      XXXX   ####    ",
         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX        ",
         "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX        ",

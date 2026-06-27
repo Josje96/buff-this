@@ -9,7 +9,7 @@ function run.new()
         levelIdx  = 1,
         lives     = MAX_LIVES,
         maxLevels = MAX_LEVELS,
-        dev       = DEV or false,
+        dev       = false,   -- only Level Select sets this true
     }
 end
 

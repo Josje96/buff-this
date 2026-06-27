@@ -86,7 +86,9 @@ all[#all+1] = {
     apply = function(player)
         resetMod(player)
         player.mod.gravMult = 2.8
-        player.mod.jumpMult = 1.5
+        -- jumpMult = sqrt(gravMult) keeps peak jump height equal to a standard
+        -- jump (height scales as jumpMult^2 / gravMult); fall is just faster.
+        player.mod.jumpMult = 1.70
     end,
     drawFX = nil,
 }
@@ -174,6 +176,14 @@ end
 
 function buffs.getAll()
     return all
+end
+
+-- returns the buff with the given name (and its index), or nil
+function buffs.byName(name)
+    for i, b in ipairs(all) do
+        if b.name == name then return b, i end
+    end
+    return nil
 end
 
 function buffs.apply(buff, player)

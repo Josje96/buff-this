@@ -23,8 +23,16 @@ function Game.new(states, r)
 
     local allBuffs   = buffs.getAll()
     self.allBuffs    = allBuffs
-    self.buffIdx     = math.random(#allBuffs)
-    self.buff        = allBuffs[self.buffIdx]
+    if self.level.forceBuff then
+        local b, idx  = buffs.byName(self.level.forceBuff)
+        self.buff     = b or buffs.random()
+        self.buffIdx  = idx or 1
+        self.buffLocked = (b ~= nil)
+    else
+        self.buffIdx  = math.random(#allBuffs)
+        self.buff     = allBuffs[self.buffIdx]
+        self.buffLocked = false
+    end
     buffs.apply(self.buff, self.player)
 
     self.splashTimer = SPLASH_TIME
@@ -48,7 +56,7 @@ function Game:update(dt)
     end
 
     if self.splashTimer > 0 then
-        if self.run.dev then
+        if self.run.dev and not self.buffLocked then
             -- dev: hold on the splash so you can pick a buff; don't auto-advance
             local dx = input.pressed("right") and 1 or (input.pressed("left") and -1 or 0)
             if dx ~= 0 then
@@ -189,9 +197,15 @@ function Game:draw()
 
         if self.run.dev then
             love.graphics.setFont(love.graphics.newFont(13))
-            love.graphics.setColor(0.6, 0.8, 1.0, fade * 0.85)
-            local picker = string.format("< Left / Right to pick buff   %d / %d >", self.buffIdx, #self.allBuffs)
-            love.graphics.print(picker, W/2 - love.graphics.getFont():getWidth(picker)/2, H * 0.72 - 22)
+            if self.buffLocked then
+                love.graphics.setColor(1.0, 0.8, 0.4, fade * 0.85)
+                local locked = "this level requires this modifier"
+                love.graphics.print(locked, W/2 - love.graphics.getFont():getWidth(locked)/2, H * 0.72 - 22)
+            else
+                love.graphics.setColor(0.6, 0.8, 1.0, fade * 0.85)
+                local picker = string.format("< Left / Right to pick buff   %d / %d >", self.buffIdx, #self.allBuffs)
+                love.graphics.print(picker, W/2 - love.graphics.getFont():getWidth(picker)/2, H * 0.72 - 22)
+            end
         end
         love.graphics.setFont(love.graphics.newFont(13))
         love.graphics.setColor(0.4, 0.4, 0.4, fade * 0.6)
