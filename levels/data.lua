@@ -243,7 +243,7 @@ levels[13] = {
 levels[14] = {
     name = "Descent", palette = P.desert,
     map = {
-        " s                                      ",
+        " S                                      ",
         "####                                    ",
         "    ####                                ",
         "                                        ",
