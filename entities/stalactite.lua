@@ -1,14 +1,13 @@
--- Ceiling-mounted stalactite. Stays fixed; periodically drops a spike projectile.
--- Each instance gets a phase offset so a row of stalactites doesn't all fire at once.
+local assets = require("systems.assets")
 
 local Stalactite = {}
 Stalactite.__index = Stalactite
 
-local CYCLE       = 1.5    -- seconds between drops
-local WARN_TIME   = 0.35   -- seconds before drop where the tile flashes
-local SPIKE_SPEED = 440    -- px/s
-local SPIKE_W     = 8
-local SPIKE_H     = 22
+local CYCLE      = 1.5
+local WARN_TIME  = 0.35
+local SPIKE_SPEED = 440
+local SPIKE_W    = 8
+local SPIKE_H    = 22
 
 function Stalactite.new(x, y, phaseOffset)
     local self = setmetatable({}, Stalactite)
@@ -61,51 +60,49 @@ function Stalactite:draw(camX, camY, palette)
     local ts  = self.w
     local sx  = self.x - camX
     local sy  = self.y - camY
-    local col = (palette and palette.hazard) or {0.90, 0.25, 0.20}
 
-    -- fixture: body (top block) + downward tip
-    love.graphics.setColor(col)
-    love.graphics.rectangle("fill", sx + 8, sy, ts - 16, ts * 0.40)
-    love.graphics.polygon("fill",
-        sx + 8,         sy + ts * 0.40,
-        sx + ts - 8,    sy + ts * 0.40,
-        sx + ts * 0.5,  sy + ts * 0.88)
+    local dangerImg = assets.image("assets/tiles/danger-tile.png")
+    local spikeImg  = assets.image("assets/spike.png")
 
-    -- edge highlight
-    love.graphics.setColor(1, 1, 1, 0.18)
-    love.graphics.setLineWidth(1)
-    love.graphics.polygon("line",
-        sx + 8,         sy + ts * 0.40,
-        sx + ts - 8,    sy + ts * 0.40,
-        sx + ts * 0.5,  sy + ts * 0.88)
+    -- Fixture: danger tile flipped vertically so spikes point down
+    if dangerImg then
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(dangerImg, sx, sy + ts, 0, 1, -1)
+    else
+        local col = (palette and palette.hazard) or {0.90, 0.25, 0.20}
+        love.graphics.setColor(col)
+        love.graphics.rectangle("fill", sx + 8, sy, ts - 16, ts * 0.40)
+        love.graphics.polygon("fill",
+            sx + 8, sy + ts * 0.40, sx + ts - 8, sy + ts * 0.40, sx + ts * 0.5, sy + ts * 0.88)
+    end
 
-    -- warning flash before drop
+    -- Warning flash before drop
     local timeLeft = CYCLE - self.timer
     if timeLeft < WARN_TIME then
         local a = (1 - timeLeft / WARN_TIME) * 0.55
         love.graphics.setColor(1, 0.95, 0.20, a)
-        love.graphics.rectangle("fill", sx + 8, sy, ts - 16, ts * 0.40)
-        love.graphics.polygon("fill",
-            sx + 8,         sy + ts * 0.40,
-            sx + ts - 8,    sy + ts * 0.40,
-            sx + ts * 0.5,  sy + ts * 0.88)
+        if dangerImg then
+            love.graphics.draw(dangerImg, sx, sy + ts, 0, 1, -1)
+        else
+            love.graphics.rectangle("fill", sx + 8, sy, ts - 16, ts * 0.40)
+            love.graphics.polygon("fill",
+                sx + 8, sy + ts * 0.40, sx + ts - 8, sy + ts * 0.40, sx + ts * 0.5, sy + ts * 0.88)
+        end
     end
 
-    -- falling spikes
-    love.graphics.setColor(col)
+    -- Falling spikes
     for _, sp in ipairs(self.spikes) do
         local spx = sp.x - camX
         local spy = sp.y - camY
-        love.graphics.polygon("fill",
-            spx,               spy,
-            spx + SPIKE_W,     spy,
-            spx + SPIKE_W / 2, spy + SPIKE_H)
-        love.graphics.setColor(1, 1, 1, 0.28)
-        love.graphics.polygon("line",
-            spx,               spy,
-            spx + SPIKE_W,     spy,
-            spx + SPIKE_W / 2, spy + SPIKE_H)
-        love.graphics.setColor(col)
+        if spikeImg then
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(spikeImg, spx, spy)
+        else
+            local col = (palette and palette.hazard) or {0.90, 0.25, 0.20}
+            love.graphics.setColor(col)
+            love.graphics.polygon("fill",
+                spx, spy, spx + SPIKE_W, spy, spx + SPIKE_W / 2, spy + SPIKE_H)
+        end
     end
 
     love.graphics.setLineWidth(1)

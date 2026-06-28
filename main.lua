@@ -1,5 +1,6 @@
 DEV = true   -- set to false to ship
 
+local fonts        = require("systems.fonts")
 local Menu         = require("states.menu")
 local Game         = require("states.game")
 local Results      = require("states.results")
@@ -30,6 +31,7 @@ function love.load()
     math.randomseed(os.time())
     math.random() math.random()
     love.graphics.setDefaultFilter("nearest", "nearest")
+    fonts.setSource("assets/fonts/VT323-Regular.ttf")
     states.switch("menu")
 end
 

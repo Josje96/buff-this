@@ -1,5 +1,6 @@
 local fonts    = require("systems.fonts")
 local palettes = require("levels.palettes")
+local assets   = require("systems.assets")
 local loader   = {}
 
 local TILE_SIZE = 40
@@ -65,13 +66,14 @@ function loader.load(levelDef)
         level.paletteName = palettes.nameOf(levelDef.palette)
     end
 
+    -- Tile sprites: <palette>-ground.png per biome, shared danger-tile.png
+    level.sprites = {
+        ground = assets.image("assets/tiles/" .. level.paletteName .. "-ground.png"),
+        hazard = assets.image("assets/tiles/danger-tile.png"),
+    }
+
     -- Optional background image (assets/backgrounds/<biome>.png)
-    local bgPath = "assets/backgrounds/" .. level.paletteName .. ".png"
-    if love.filesystem.getInfo(bgPath) then
-        level.bgImage = love.graphics.newImage(bgPath)
-    else
-        level.bgImage = nil
-    end
+    level.bgImage = assets.image("assets/backgrounds/" .. level.paletteName .. ".png")
 
     function level.getSize()
         return level.width, level.height
@@ -137,22 +139,32 @@ function loader.draw(level, camX, camY)
         end
 
         if t.kind == "ground" then
-            love.graphics.setColor(p.ground)
-            love.graphics.rectangle("fill", sx, sy, ts, ts)
-            love.graphics.setColor(p.platform)
-            love.graphics.setLineWidth(1)
-            love.graphics.rectangle("line", sx, sy, ts, ts)
+            if level.sprites.ground then
+                love.graphics.setColor(1, 1, 1)
+                love.graphics.draw(level.sprites.ground, sx, sy)
+            else
+                love.graphics.setColor(p.ground)
+                love.graphics.rectangle("fill", sx, sy, ts, ts)
+                love.graphics.setColor(p.platform)
+                love.graphics.setLineWidth(1)
+                love.graphics.rectangle("line", sx, sy, ts, ts)
+            end
         elseif t.kind == "hazard" then
-            love.graphics.setColor(p.hazard)
-            love.graphics.rectangle("fill", sx, sy, ts, ts)
-            love.graphics.setColor(1, 1, 1, 0.25)
-            local spikes = 4
-            local sw = ts / spikes
-            for s = 0, spikes - 1 do
-                love.graphics.polygon("fill",
-                    sx + s * sw,        sy + ts * 0.4,
-                    sx + s * sw + sw/2, sy,
-                    sx + s * sw + sw,   sy + ts * 0.4)
+            if level.sprites.hazard then
+                love.graphics.setColor(1, 1, 1)
+                love.graphics.draw(level.sprites.hazard, sx, sy)
+            else
+                love.graphics.setColor(p.hazard)
+                love.graphics.rectangle("fill", sx, sy, ts, ts)
+                love.graphics.setColor(1, 1, 1, 0.25)
+                local spikes = 4
+                local sw = ts / spikes
+                for s = 0, spikes - 1 do
+                    love.graphics.polygon("fill",
+                        sx + s * sw,        sy + ts * 0.4,
+                        sx + s * sw + sw/2, sy,
+                        sx + s * sw + sw,   sy + ts * 0.4)
+                end
             end
         end
 
