@@ -17,7 +17,7 @@ local MAGIC   = "BUFFLVL"
 local VERSION = "v1"
 
 -- Characters that are meaningful in a map row. Everything else becomes air.
-local VALID = { ["#"]=true, ["X"]=true, ["S"]=true, ["G"]=true, [" "]=true }
+local VALID = { ["#"]=true, ["X"]=true, ["S"]=true, ["G"]=true, ["E"]=true, ["V"]=true, [" "]=true }
 
 local function trimr(s) return (s:gsub("%s+$", "")) end
 local function trim(s)  return (s:gsub("^%s+", ""):gsub("%s+$", "")) end

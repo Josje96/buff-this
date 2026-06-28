@@ -29,11 +29,13 @@ local CELL = 30   -- on-screen size of an editor cell
 
 -- brush options: { char, label }
 local BRUSHES = {
-    { ch = "#", label = "Solid"  },
-    { ch = "X", label = "Hazard" },
-    { ch = "S", label = "Spawn"  },
-    { ch = "G", label = "Goal"   },
-    { ch = " ", label = "Erase"  },
+    { ch = "#", label = "Solid"      },
+    { ch = "X", label = "Hazard"     },
+    { ch = "S", label = "Spawn"      },
+    { ch = "G", label = "Goal"       },
+    { ch = "E", label = "Enemy"      },
+    { ch = "V", label = "Stalactite" },
+    { ch = " ", label = "Erase"      },
 }
 
 -- on-screen keyboard layout (last row holds special keys)
@@ -70,7 +72,8 @@ local function gridFromMap(mapRows)
         local row = mapRows[r]
         for c = 1, w do
             local ch = row:sub(c, c)
-            if ch == "#" or ch == "X" or ch == "S" or ch == "G" then
+            if ch == "#" or ch == "X" or ch == "S" or ch == "G"
+            or ch == "E" or ch == "V" then
                 g[r][c] = ch
             end
         end
@@ -371,6 +374,19 @@ function Editor:draw()
                     love.graphics.rectangle("fill", sx + 5, sy + 2, CELL - 10, CELL - 4, 3, 3)
                     love.graphics.setColor(0, 0, 0, 0.6)
                     love.graphics.print("!", sx + CELL/2 - 3, sy + CELL/2 - 8)
+                elseif ch == "E" then
+                    love.graphics.setColor(0.95, 0.25, 0.15)
+                    love.graphics.rectangle("fill", sx + 3, sy + 3, CELL - 6, CELL - 6, 3, 3)
+                    love.graphics.setColor(1, 1, 1)
+                    love.graphics.print("E", sx + CELL/2 - 4, sy + CELL/2 - 8)
+                elseif ch == "V" then
+                    love.graphics.setColor(0.90, 0.25, 0.20)
+                    love.graphics.polygon("fill",
+                        sx + 4,        sy + 2,
+                        sx + CELL - 4, sy + 2,
+                        sx + CELL/2,   sy + CELL - 4)
+                    love.graphics.setColor(1, 1, 1, 0.7)
+                    love.graphics.print("V", sx + CELL/2 - 4, sy + 2)
                 end
             end
         end
@@ -511,6 +527,8 @@ function Editor:keypressed(key)
     elseif key == "3" then self.brushIdx = 3
     elseif key == "4" then self.brushIdx = 4
     elseif key == "5" then self.brushIdx = 5
+    elseif key == "6" then self.brushIdx = 6
+    elseif key == "7" then self.brushIdx = 7
     elseif key == "p" then self:_cyclePalette(1)
     elseif key == "o" then self:_cyclePalette(-1)
     elseif key == "u" then self:_cycleBuff(1)

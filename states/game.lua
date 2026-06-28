@@ -1,10 +1,12 @@
-local fonts = require("systems.fonts")
-local input  = require("systems.input")
-local Player = require("entities.player")
-local loader = require("levels.loader")
-local data   = require("levels.data")
-local buffs  = require("systems.buffs")
-local run    = require("systems.run")
+local fonts      = require("systems.fonts")
+local input      = require("systems.input")
+local Player     = require("entities.player")
+local Enemy      = require("entities.enemy")
+local Stalactite = require("entities.stalactite")
+local loader     = require("levels.loader")
+local data       = require("levels.data")
+local buffs      = require("systems.buffs")
+local run        = require("systems.run")
 
 local Game = {}
 Game.__index = Game
@@ -37,6 +39,19 @@ function Game.new(states, r)
         self.buffLocked = false
     end
     buffs.apply(self.buff, self.player)
+
+    -- Spawn enemies
+    self.enemies = {}
+    for _, sp in ipairs(self.level.enemySpawns) do
+        self.enemies[#self.enemies + 1] = Enemy.new(sp.x, sp.y)
+    end
+
+    -- Spawn stalactites with staggered phase offsets
+    self.stalactites = {}
+    for i, sp in ipairs(self.level.stalactiteSpawns) do
+        local phase = (i * 0.41) % 1.5
+        self.stalactites[#self.stalactites + 1] = Stalactite.new(sp.x, sp.y, phase)
+    end
 
     self.splashTimer = SPLASH_TIME
     self.won         = false
@@ -121,16 +136,35 @@ function Game:update(dt)
     if input.pressed("jump") then self.jumpQueued = true end
     while self.accum >= STEP do
         local jumpPressed = self.jumpQueued
-        self.jumpQueued = false   -- consumed by this substep
+        self.jumpQueued = false
         self.player:update(STEP, self.level, jumpPressed)
+        for _, e in ipairs(self.enemies) do e:update(STEP, self.level) end
         self.accum = self.accum - STEP
         if not self.player.dead then
             local hx, hy, hw, hh = self.player:getRect()
             if #self.level.getHazardsInRect(hx, hy, hw, hh) > 0 then
                 self.player.dead = true
             end
+            if not self.player.dead then
+                for _, e in ipairs(self.enemies) do
+                    if not e.dead and e:overlaps(hx, hy, hw, hh) then
+                        self.player.dead = true; break
+                    end
+                end
+            end
         end
         if self.player.dead then break end
+    end
+
+    -- Stalactites update on real dt (no tunnelling risk at their size)
+    for _, st in ipairs(self.stalactites) do st:update(dt, self.level) end
+    if not self.player.dead then
+        local hx, hy, hw, hh = self.player:getRect()
+        for _, st in ipairs(self.stalactites) do
+            if st:overlapsAnySpike(hx, hy, hw, hh) then
+                self.player.dead = true; break
+            end
+        end
     end
 
     local px, py, pw, ph = self.player:getRect()
@@ -179,6 +213,12 @@ function Game:draw()
 
     love.graphics.clear(p.bg[1], p.bg[2], p.bg[3])
     loader.draw(self.level, self.camX, self.camY)
+    for _, st in ipairs(self.stalactites) do
+        st:draw(self.camX, self.camY, p)
+    end
+    for _, e in ipairs(self.enemies) do
+        e:draw(self.camX, self.camY)
+    end
     self.player:draw(self.camX, self.camY)
 
     if self.buff.drawFX and self.splashTimer <= 0 then

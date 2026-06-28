@@ -1,15 +1,18 @@
-local fonts = require("systems.fonts")
-local loader = {}
+local fonts    = require("systems.fonts")
+local palettes = require("levels.palettes")
+local loader   = {}
 
 local TILE_SIZE = 40
 
 function loader.load(levelDef)
-    local level = {}
-    local tiles  = {}
-    local spawn  = {x = 100, y = 100}
-    local goal   = nil
-    local cols   = 0
-    local rows   = #levelDef.map
+    local level             = {}
+    local tiles             = {}
+    local enemySpawns       = {}
+    local stalactiteSpawns  = {}
+    local spawn             = {x = 100, y = 100}
+    local goal              = nil
+    local cols              = 0
+    local rows              = #levelDef.map
 
     for row, line in ipairs(levelDef.map) do
         if #line > cols then cols = #line end
@@ -18,7 +21,7 @@ function loader.load(levelDef)
             local wx = (col - 1) * TILE_SIZE
             local wy = (row - 1) * TILE_SIZE
 
-            if ch == 'S' then
+            if     ch == 'S' then
                 spawn = { x = wx, y = wy }
             elseif ch == 'G' then
                 goal = { x = wx, y = wy, w = TILE_SIZE, h = TILE_SIZE }
@@ -34,25 +37,46 @@ function loader.load(levelDef)
                     w = TILE_SIZE, h = TILE_SIZE,
                     solid = false, kind = "hazard",
                 }
+            elseif ch == 'E' then
+                enemySpawns[#enemySpawns + 1] = { x = wx, y = wy }
+            elseif ch == 'V' then
+                stalactiteSpawns[#stalactiteSpawns + 1] = { x = wx, y = wy }
             end
         end
     end
 
-    level.tiles   = tiles
-    level.spawn   = spawn
-    level.goal    = goal
-    level.name      = levelDef.name
-    level.palette   = levelDef.palette
-    level.forceBuff = levelDef.forceBuff
-    level.width   = cols * TILE_SIZE
-    level.height  = rows * TILE_SIZE
-    level.tileSize = TILE_SIZE
+    level.tiles             = tiles
+    level.enemySpawns       = enemySpawns
+    level.stalactiteSpawns  = stalactiteSpawns
+    level.spawn             = spawn
+    level.goal              = goal
+    level.name              = levelDef.name
+    level.forceBuff         = levelDef.forceBuff
+    level.width             = cols * TILE_SIZE
+    level.height            = rows * TILE_SIZE
+    level.tileSize          = TILE_SIZE
+
+    -- Resolve palette to color table and keep the name for backgrounds
+    if type(levelDef.palette) == "string" then
+        level.palette     = palettes.resolve(levelDef.palette)
+        level.paletteName = levelDef.palette
+    else
+        level.palette     = levelDef.palette
+        level.paletteName = palettes.nameOf(levelDef.palette)
+    end
+
+    -- Optional background image (assets/backgrounds/<biome>.png)
+    local bgPath = "assets/backgrounds/" .. level.paletteName .. ".png"
+    if love.filesystem.getInfo(bgPath) then
+        level.bgImage = love.graphics.newImage(bgPath)
+    else
+        level.bgImage = nil
+    end
 
     function level.getSize()
         return level.width, level.height
     end
 
-    -- returns all tiles whose AABB overlaps the given rect
     function level.getTilesInRect(x, y, w, h)
         local result = {}
         for _, t in ipairs(tiles) do
@@ -65,7 +89,6 @@ function loader.load(levelDef)
         return result
     end
 
-    -- returns hazard tiles that overlap rect (separate from solid check)
     function level.getHazardsInRect(x, y, w, h)
         local result = {}
         for _, t in ipairs(tiles) do
@@ -82,15 +105,33 @@ function loader.load(levelDef)
 end
 
 function loader.draw(level, camX, camY)
-    local p = level.palette
+    local p  = level.palette
     local ts = level.tileSize
+    local W, H = love.graphics.getDimensions()
 
+    -- Background image (tiled, 30% parallax)
+    if level.bgImage then
+        local iw = level.bgImage:getWidth()
+        local ih = level.bgImage:getHeight()
+        local bx = (-(camX * 0.3)) % iw
+        local by = (-(camY * 0.3)) % ih
+        love.graphics.setColor(1, 1, 1)
+        local x = bx - iw
+        while x < W do
+            local y = by - ih
+            while y < H do
+                love.graphics.draw(level.bgImage, x, y)
+                y = y + ih
+            end
+            x = x + iw
+        end
+    end
+
+    -- Tiles
     for _, t in ipairs(level.tiles) do
         local sx = t.x - camX
         local sy = t.y - camY
 
-        -- cull off-screen tiles
-        local W, H = love.graphics.getDimensions()
         if sx + ts < 0 or sx > W or sy + ts < 0 or sy > H then
             goto continue
         end
@@ -104,7 +145,6 @@ function loader.draw(level, camX, camY)
         elseif t.kind == "hazard" then
             love.graphics.setColor(p.hazard)
             love.graphics.rectangle("fill", sx, sy, ts, ts)
-            -- spiky top edge
             love.graphics.setColor(1, 1, 1, 0.25)
             local spikes = 4
             local sw = ts / spikes
@@ -119,7 +159,7 @@ function loader.draw(level, camX, camY)
         ::continue::
     end
 
-    -- goal
+    -- Goal
     if level.goal then
         local gx = level.goal.x - camX
         local gy = level.goal.y - camY
